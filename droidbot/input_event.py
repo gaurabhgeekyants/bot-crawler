@@ -72,8 +72,8 @@ POSSIBLE_BROADCASTS = [
 KEY_KeyEvent = "key"
 KEY_ManualEvent = "manual"
 KEY_ExitEvent = "exit"
-KEY_TouchEvent = "touch"
-KEY_LongTouchEvent = "long_touch"
+KEY_TouchEvent = "click"
+KEY_LongTouchEvent = "long_click"
 KEY_SwipeEvent = "swipe"
 KEY_ScrollEvent = "scroll"
 KEY_SetTextEvent = "set_text"
@@ -93,6 +93,7 @@ class InputEvent(object):
     def __init__(self):
         self.event_type = None
         self.log_lines = None
+        self.prompt = self.event_type
 
     def to_dict(self):
         return self.__dict__
@@ -403,8 +404,9 @@ class UIEvent(InputEvent):
     """
     This class describes a UI event of app, such as touch, click, etc
     """
-    def __init__(self):
+    def __init__(self, view=None):
         super().__init__()
+        self.view = view
 
     def send(self, device):
         raise NotImplementedError
@@ -451,7 +453,7 @@ class TouchEvent(UIEvent):
     """
 
     def __init__(self, x=None, y=None, view=None, event_dict=None):
-        super().__init__()
+        super().__init__(view)
         self.event_type = KEY_TouchEvent
         self.x = x
         self.y = y
@@ -489,7 +491,7 @@ class LongTouchEvent(UIEvent):
     """
 
     def __init__(self, x=None, y=None, view=None, duration=2000, event_dict=None):
-        super().__init__()
+        super().__init__(view)
         self.event_type = KEY_LongTouchEvent
         self.x = x
         self.y = y
@@ -530,7 +532,7 @@ class SwipeEvent(UIEvent):
 
     def __init__(self, start_x=None, start_y=None, start_view=None, end_x=None, end_y=None, end_view=None,
                  duration=1000, event_dict=None):
-        super().__init__()
+        super().__init__(start_view)
         self.event_type = KEY_SwipeEvent
 
         self.start_x = start_x
@@ -595,7 +597,7 @@ class ScrollEvent(UIEvent):
     """
 
     def __init__(self, x=None, y=None, view=None, direction="DOWN", event_dict=None):
-        super().__init__()
+        super().__init__(view)
         self.event_type = KEY_ScrollEvent
         self.x = x
         self.y = y
@@ -672,11 +674,13 @@ class SetTextEvent(UIEvent):
         pass
 
     def __init__(self, x=None, y=None, view=None, text=None, event_dict=None):
-        super().__init__()
+        super().__init__(view)
         self.event_type = KEY_SetTextEvent
         self.x = x
         self.y = y
         self.view = view
+        # if text is not None:
+        #     text = text.replace('"', '')
         self.text = text
         if event_dict is not None:
             self.__dict__.update(event_dict)
